@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TestForm } from './TestForm';
 import { ResultsSection } from './ResultsSection';
+import { UserInfoForm } from './UserInfoForm';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle, Target, Users, TrendingUp } from 'lucide-react';
@@ -14,10 +15,16 @@ export interface TestResult {
 }
 
 export const VocationalTest = () => {
-  const [currentStep, setCurrentStep] = useState<'intro' | 'test' | 'results'>('intro');
+  const [currentStep, setCurrentStep] = useState<'intro' | 'userInfo' | 'test' | 'results'>('intro');
   const [result, setResult] = useState<TestResult | null>(null);
+  const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
 
   const handleStartTest = () => {
+    setCurrentStep('userInfo');
+  };
+
+  const handleUserInfoSubmit = (name: string, email: string) => {
+    setUserInfo({ name, email });
     setCurrentStep('test');
   };
 
@@ -30,6 +37,14 @@ export const VocationalTest = () => {
     setResult(null);
     setCurrentStep('intro');
   };
+
+  if (currentStep === 'userInfo') {
+    return (
+      <div className="min-h-screen bg-background">
+        <UserInfoForm onSubmit={handleUserInfoSubmit} />
+      </div>
+    );
+  }
 
   if (currentStep === 'test') {
     return (
