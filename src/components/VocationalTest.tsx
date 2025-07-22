@@ -52,17 +52,17 @@ export const VocationalTest = () => {
     setResult(testResult);
     setCurrentStep('results');
     
-    if (userId) {
+    if (userId && userInfo) {
       try {
-        await updateTestResult(userId, testResult);
+        await updateTestResult(userId, testResult, userInfo.email, userInfo.name);
         toast({
-          title: "Resultados guardados",
-          description: "Tus resultados del test han sido guardados correctamente.",
+          title: "Resultados enviados",
+          description: "Tus resultados han sido guardados y enviados por email.",
         });
       } catch (error) {
         toast({
           title: "Advertencia",
-          description: "Los resultados se muestran pero no se pudieron guardar en la base de datos.",
+          description: "Los resultados se muestran pero hubo un problema al guardarlos o enviarlos por email.",
           variant: "destructive",
         });
       }

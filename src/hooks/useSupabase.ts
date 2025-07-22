@@ -30,7 +30,7 @@ export const useSupabase = () => {
     }
   }
 
-  const updateTestResult = async (userId: string, testResult: TestResult) => {
+  const updateTestResult = async (userId: string, testResult: TestResult, userEmail: string, userName: string) => {
     setLoading(true)
     try {
       const { error } = await supabase
@@ -39,6 +39,9 @@ export const useSupabase = () => {
         .eq('id', userId)
 
       if (error) throw error
+
+      // Send email with test results
+      await sendTestResultsEmail(userEmail, userName, testResult)
     } catch (error) {
       console.error('Error updating test result:', error)
       throw error
@@ -47,5 +50,19 @@ export const useSupabase = () => {
     }
   }
 
-  return { saveUserData, updateTestResult, loading }
+  const sendTestResultsEmail = async (email: string, name: string, result: TestResult) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-test-results', {
+        body: { email, name, result }
+      })
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error sending email:', error)
+      throw error
+    }
+  }
+
+  return { saveUserData, updateTestResult, sendTestResultsEmail, loading }
 }
