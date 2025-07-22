@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { TestForm } from './TestForm';
 import { ResultsSection } from './ResultsSection';
 import { UserInfoForm } from './UserInfoForm';
+import { useSupabase } from '@/hooks/useSupabase';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle, Target, Users, TrendingUp } from 'lucide-react';
@@ -18,30 +20,66 @@ export const VocationalTest = () => {
   const [currentStep, setCurrentStep] = useState<'intro' | 'userInfo' | 'test' | 'results'>('intro');
   const [result, setResult] = useState<TestResult | null>(null);
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  const { saveUserData, updateTestResult, loading } = useSupabase();
+  const { toast } = useToast();
 
   const handleStartTest = () => {
     setCurrentStep('userInfo');
   };
 
-  const handleUserInfoSubmit = (name: string, email: string) => {
-    setUserInfo({ name, email });
-    setCurrentStep('test');
+  const handleUserInfoSubmit = async (name: string, email: string) => {
+    try {
+      const savedUser = await saveUserData({ name, email });
+      setUserInfo({ name, email });
+      setUserId(savedUser.id);
+      setCurrentStep('test');
+      toast({
+        title: "Información guardada",
+        description: "Tus datos han sido guardados correctamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar tus datos. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleTestComplete = (testResult: TestResult) => {
+  const handleTestComplete = async (testResult: TestResult) => {
     setResult(testResult);
     setCurrentStep('results');
+    
+    if (userId) {
+      try {
+        await updateTestResult(userId, testResult);
+        toast({
+          title: "Resultados guardados",
+          description: "Tus resultados del test han sido guardados correctamente.",
+        });
+      } catch (error) {
+        toast({
+          title: "Advertencia",
+          description: "Los resultados se muestran pero no se pudieron guardar en la base de datos.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleRetakeTest = () => {
     setResult(null);
+    setUserInfo(null);
+    setUserId(null);
     setCurrentStep('intro');
   };
 
   if (currentStep === 'userInfo') {
     return (
       <div className="min-h-screen bg-background">
-        <UserInfoForm onSubmit={handleUserInfoSubmit} />
+        <UserInfoForm onSubmit={handleUserInfoSubmit} loading={loading} />
       </div>
     );
   }

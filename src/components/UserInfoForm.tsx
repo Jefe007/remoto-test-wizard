@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 interface UserInfoFormProps {
   onSubmit: (name: string, email: string) => void;
+  loading?: boolean;
 }
 
-export const UserInfoForm = ({ onSubmit }: UserInfoFormProps) => {
+export const UserInfoForm = ({ onSubmit, loading = false }: UserInfoFormProps) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({ name: '', email: '' });
@@ -84,8 +85,9 @@ export const UserInfoForm = ({ onSubmit }: UserInfoFormProps) => {
               type="submit" 
               className="w-full bg-primary hover:bg-primary/90"
               size="lg"
+              disabled={loading}
             >
-              Continuar al Test
+              {loading ? "Guardando..." : "Continuar al Test"}
             </Button>
           </form>
         </CardContent>
