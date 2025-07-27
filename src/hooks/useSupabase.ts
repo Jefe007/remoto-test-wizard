@@ -5,7 +5,7 @@ import { TestResult } from '@/components/VocationalTest'
 export const useSupabase = () => {
   const [loading, setLoading] = useState(false)
 
-  const saveUserData = async (userData: { name: string; email: string }) => {
+  const saveUserData = async (userData: { name: string; email: string; user_id: string }) => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -14,11 +14,12 @@ export const useSupabase = () => {
           {
             name: userData.name,
             email: userData.email,
+            user_id: userData.user_id,
             created_at: new Date().toISOString()
           }
         ])
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data

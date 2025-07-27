@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TestForm } from './TestForm';
 import { ResultsSection } from './ResultsSection';
 import { UserInfoForm } from './UserInfoForm';
 import { useSupabase } from '@/hooks/useSupabase';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -23,15 +25,37 @@ export const VocationalTest = () => {
   const [userId, setUserId] = useState<string | null>(null);
   
   const { saveUserData, updateTestResult, loading } = useSupabase();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate('/auth');
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   const handleStartTest = () => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
     setCurrentStep('userInfo');
   };
 
   const handleUserInfoSubmit = async (name: string, email: string) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Debes estar autenticado para continuar.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
     try {
-      const savedUser = await saveUserData({ name, email });
+      const savedUser = await saveUserData({ name, email, user_id: user.id });
       setUserInfo({ name, email });
       setUserId(savedUser.id);
       setCurrentStep('test');
