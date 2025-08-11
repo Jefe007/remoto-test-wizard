@@ -48,22 +48,11 @@ export const VocationalTest = () => {
     setResult(testResult);
     setCurrentStep('results');
     
-    if (userId && userInfo) {
+    if (userInfo) {
       try {
-        await updateTestResult(userId, testResult, userInfo.email, userInfo.name);
-        toast({
-          title: "Resultados enviados",
-          description: "Tus resultados han sido guardados y enviados por email.",
-        });
-      } catch (error) {
-        toast({
-          title: "Advertencia",
-          description: "Los resultados se muestran pero hubo un problema al guardarlos o enviarlos por email.",
-          variant: "destructive",
-        });
-      }
-      try {
+        // Guardar en Supabase (Edge Function pública)
         await saveTestResultPublic(userInfo.name, userInfo.email, testResult);
+        // Enviar email con resultados
         await sendTestResultsEmail(userInfo.email, userInfo.name, testResult);
         toast({
           title: "Resultados enviados",
