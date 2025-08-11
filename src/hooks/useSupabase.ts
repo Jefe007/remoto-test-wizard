@@ -65,5 +65,18 @@ export const useSupabase = () => {
     }
   }
 
-  return { saveUserData, updateTestResult, sendTestResultsEmail, loading }
+  const saveTestResultPublic = async (name: string, email: string, result: TestResult) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('save-test', {
+        body: { name, email, result }
+      })
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error saving test result:', error)
+      throw error
+    }
+  }
+
+  return { saveUserData, updateTestResult, sendTestResultsEmail, saveTestResultPublic, loading }
 }

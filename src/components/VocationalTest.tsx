@@ -25,7 +25,7 @@ export const VocationalTest = () => {
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   
-  const { updateTestResult, sendTestResultsEmail, loading } = useSupabase();
+  const { updateTestResult, sendTestResultsEmail, saveTestResultPublic, loading } = useSupabase();
   
   const { toast } = useToast();
   
@@ -62,17 +62,17 @@ export const VocationalTest = () => {
           variant: "destructive",
         });
       }
-    } else if (userInfo) {
       try {
+        await saveTestResultPublic(userInfo.name, userInfo.email, testResult);
         await sendTestResultsEmail(userInfo.email, userInfo.name, testResult);
         toast({
           title: "Resultados enviados",
-          description: "Tus resultados han sido enviados por email.",
+          description: "Tus resultados han sido guardados y enviados por email.",
         });
       } catch (error) {
         toast({
           title: "Advertencia",
-          description: "Los resultados se muestran pero hubo un problema al enviar el email.",
+          description: "Los resultados se muestran pero hubo un problema al guardar o enviar el email.",
           variant: "destructive",
         });
       }
