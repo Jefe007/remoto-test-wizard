@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase, UserTestData } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { TestResult } from '@/components/VocationalTest'
 
 export const useSupabase = () => {
@@ -36,7 +36,7 @@ export const useSupabase = () => {
     try {
       const { error } = await supabase
         .from('user_tests')
-        .update({ test_result: testResult })
+        .update({ test_result: testResult as any })
         .eq('id', userId)
 
       if (error) throw error
