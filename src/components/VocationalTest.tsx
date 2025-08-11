@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
 import { TestForm } from './TestForm';
 import { ResultsSection } from './ResultsSection';
 import { UserInfoForm } from './UserInfoForm';
 import { useSupabase } from '@/hooks/useSupabase';
-import { useAuth } from '@/hooks/useAuth';
+
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { CheckCircle, Target, Users, TrendingUp } from 'lucide-react';
 import heroImage from '@/assets/hero-vocational-test.jpg';
+
 
 export type TestProfile = 'creative' | 'logical' | 'support' | 'leader' | 'empathetic' | 'trafficker';
 
@@ -24,52 +25,23 @@ export const VocationalTest = () => {
   const [userInfo, setUserInfo] = useState<{ name: string; email: string } | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   
-  const { saveUserData, updateTestResult, loading } = useSupabase();
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { updateTestResult, sendTestResultsEmail, loading } = useSupabase();
+  
   const { toast } = useToast();
-  const navigate = useNavigate();
+  
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate('/auth');
-    }
-  }, [authLoading, isAuthenticated, navigate]);
 
   const handleStartTest = () => {
-    if (!isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
     setCurrentStep('userInfo');
   };
 
   const handleUserInfoSubmit = async (name: string, email: string) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "Debes estar autenticado para continuar.",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-
-    try {
-      const savedUser = await saveUserData({ name, email, user_id: user.id });
-      setUserInfo({ name, email });
-      setUserId(savedUser.id);
-      setCurrentStep('test');
-      toast({
-        title: "Información guardada",
-        description: "Tus datos han sido guardados correctamente.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar tus datos. Intenta nuevamente.",
-        variant: "destructive",
-      });
-    }
+    setUserInfo({ name, email });
+    setCurrentStep('test');
+    toast({
+      title: "¡Listo!",
+      description: "Tus datos fueron recibidos. Ahora completa el test.",
+    });
   };
 
   const handleTestComplete = async (testResult: TestResult) => {
@@ -87,6 +59,20 @@ export const VocationalTest = () => {
         toast({
           title: "Advertencia",
           description: "Los resultados se muestran pero hubo un problema al guardarlos o enviarlos por email.",
+          variant: "destructive",
+        });
+      }
+    } else if (userInfo) {
+      try {
+        await sendTestResultsEmail(userInfo.email, userInfo.name, testResult);
+        toast({
+          title: "Resultados enviados",
+          description: "Tus resultados han sido enviados por email.",
+        });
+      } catch (error) {
+        toast({
+          title: "Advertencia",
+          description: "Los resultados se muestran pero hubo un problema al enviar el email.",
           variant: "destructive",
         });
       }
